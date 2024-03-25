@@ -1,0 +1,1 @@
+# ldapsearch_and_compare
