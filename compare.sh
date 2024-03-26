@@ -1,27 +1,37 @@
 #!/bin/bash
 
-# File paths
-file1_path="file1.txt"
-file2_path="file2.txt"
-output_file_path="output.txt"
+# File names
+file1="file1.txt"
+file2="file2.txt"
+output_file="unique_values.txt"
 
-# Initialize an associative array to store unique lines
-declare -A unique_lines
+# Empty the output file
+> $output_file
 
-# Read file1 and populate the associative array
+# Read each line of file1 and compare it with each line of file2
 while IFS= read -r line1; do
-    unique_lines["$line1"]=1
-done < "$file1_path"
+  unique=true
+  while IFS= read -r line2; do
+    if [ "$line1" = "$line2" ]; then
+      unique=false
+      break
+    fi
+  done < "$file2"
+  if $unique; then
+    echo "$line1" >> "$output_file"
+  fi
+done < "$file1"
 
-# Read file2 and remove matching lines from the associative array
+# Now do the same for file2, to find lines unique to file2
 while IFS= read -r line2; do
-    unset "unique_lines[$line2]"
-done < "$file2_path"
-
-# Write unique lines to the output file
-> "$output_file_path"  # Clear the output file
-for unique_line in "${!unique_lines[@]}"; do
-    echo "$unique_line" >> "$output_file_path"
-done
-
-echo "Unique values written to $output_file_path"
+  unique=true
+  while IFS= read -r line1; do
+    if [ "$line2" = "$line1" ]; then
+      unique=false
+      break
+    fi
+  done < "$file1"
+  if $unique; then
+    echo "$line2" >> "$output_file"
+  fi
+done < "$file2"
